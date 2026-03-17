@@ -1,104 +1,104 @@
 # AgentFlow — AI-Native Enterprise Work Platform
 
-> 将模型能力深度融入企业工作流，用 AI Agent 替代运维工程师和外包研发
+> Deeply integrate LLM capabilities into enterprise workflows. Replace ops engineers and outsourced developers with AI Agents.
 
-## 项目定位
+## What is AgentFlow
 
-B端 AI 原生工作平台，通过飞书审批/对话驱动，自动化完成云资源管理、CI/CD 流水线创建、域名管理等运维操作，并通过 LLM Coding Agent 实现需求到上线的全自动化。
+An AI-native B2B work platform that automates cloud resource management, CI/CD pipeline creation, and domain management through IM approval/chat-driven workflows, while leveraging LLM Coding Agents to achieve fully automated requirement-to-deployment pipelines.
 
-**核心目标**: 用 AI 替代运维团队（2人）+ 外包研发团队，实现零人工介入的企业 IT 运营。
+**Core Goal**: Replace the ops team (2 engineers) + outsourced dev team with AI, achieving zero-human-intervention enterprise IT operations.
 
-## 两个 Phase
+## Two Phases
 
-### Phase 1: 运维自动化引擎（已完成）
+### Phase 1: DevOps Automation Engine (Completed)
 
-飞书审批驱动的多云资源自动开通，替代运维工程师的手动操作。
+IM-approval-driven multi-cloud resource provisioning, replacing manual ops work.
 
-- **云资源开通**: 业务负责人飞书提交审批 → 主管审批 → 自动调云 API 创建资源 → 飞书通知连接信息
-- **CI/CD 流水线创建**: 研发提交部署申请 → 自动在云效创建流水线 + 分配域名
-- **域名替换**: 自动分配域名 → 等保备案后自动更新 DNS + SSL
-- **定时任务**: 每日资源到期预警 + 每月成本报表
+- **Cloud Resource Provisioning**: Business owner submits approval → Manager approves → Auto-call cloud APIs to create resources → IM notification with connection info
+- **CI/CD Pipeline Creation**: Developer submits deployment request → Auto-create Yunxiao pipeline + assign domain
+- **Domain Replacement**: Temp domain → After security compliance filing, auto-update DNS + SSL
+- **Scheduled Tasks**: Daily resource expiry alerts + Monthly cost reports
 
-支持多云: 阿里云（RDS / Redis / ECS / OSS / SLB / SAE）、华为云（昇腾 GPU）、腾讯云（CVM）
+Multi-cloud support: Alibaba Cloud (RDS / Redis / ECS / OSS / SLB / SAE), Huawei Cloud (Ascend GPU, 910B 910C), Tencent Cloud (CVM)
 
-### Phase 2: AI Coding Agent + 对话式云操作（规划中）
+### Phase 2: AI Coding Agent + Conversational Cloud Ops (Planned)
 
-- **AI 对话式云操作**: 飞书群 `@AgentFlow 帮我开一个4G Redis` 一句话替代填审批表单
-- **LLM Vibe Coding**: 业务描述需求 → Coding Agent 写码 → Review Agent 审查 → 自动部署上线
-- **双模型交叉审查**: Claude 做代码生成，DeepSeek 做代码审查，不同模型交叉验证
+- **Conversational Cloud Ops**: `@AgentFlow provision a 4G Redis` — one message replaces a 7-field approval form
+- **LLM Vibe Coding**: Business describes requirement → Coding Agent writes code → Review Agent reviews → Auto-deploy to production
+- **Dual-Model Cross Review**: Claude for code generation, DeepSeek for code review — different models for cross-validation
 
-## 技术架构
+## Architecture
 
 ```
-飞书审批/对话 → POST /api/lark/events → 工作流路由 → 云 API 调用 → 飞书通知
-                                                       ↓
-                                                 SQLite 资源台账
+IM Approval/Chat → POST /api/lark/events → Workflow Router → Cloud API Calls → IM Notification
+                                                                  ↓
+                                                           SQLite Inventory
 ```
 
-| 组件 | 技术 |
-|------|------|
-| 后端 | Python 3.12 + FastAPI |
-| 数据库 | SQLite（可切 PostgreSQL） |
-| 飞书 SDK | lark-oapi |
-| 阿里云 | alibabacloud-devops / alidns / rds / ecs 等 |
-| 华为云 | huaweicloudsdkecs |
-| 腾讯云 | tencentcloud-sdk-python |
-| 定时任务 | APScheduler |
+| Component | Technology |
+|-----------|-----------|
+| Backend | Python 3.12 + FastAPI |
+| Database | SQLite (PostgreSQL ready) |
+| IM SDK | lark-oapi |
+| Alibaba Cloud | alibabacloud-devops / alidns / rds / ecs etc. |
+| Huawei Cloud | huaweicloudsdkecs |
+| Tencent Cloud | tencentcloud-sdk-python |
+| Scheduler | APScheduler |
 
-## 项目结构
+## Project Structure
 
 ```
 agentflow/
-├── main.py                     # FastAPI 入口
-├── config.py                   # 配置管理
-├── scheduler.py                # 定时任务（到期提醒 + 成本报表）
+├── main.py                     # FastAPI entrypoint
+├── config.py                   # Configuration management
+├── scheduler.py                # Scheduled tasks (expiry alerts + cost reports)
 ├── api/
-│   └── lark_events.py          # 飞书事件回调（系统入口）
+│   └── lark_events.py          # IM event callback (system entry point)
 ├── workflows/
-│   ├── pipeline_setup.py       # 流程1: 创建云效流水线
-│   ├── resource_provision.py   # 流程2: 多云资源开通
-│   └── domain_change.py        # 流程3: 域名替换
+│   ├── pipeline_setup.py       # Workflow 1: Create CI/CD pipeline
+│   ├── resource_provision.py   # Workflow 2: Multi-cloud resource provisioning
+│   └── domain_change.py        # Workflow 3: Domain replacement
 ├── cloud/
-│   ├── alibaba/                # 阿里云 API（10个模块）
-│   ├── huawei/                 # 华为云 API（GPU）
-│   └── tencent/                # 腾讯云 API
+│   ├── alibaba/                # Alibaba Cloud API (10 modules)
+│   ├── huawei/                 # Huawei Cloud API (GPU)
+│   └── tencent/                # Tencent Cloud API
 ├── lark/
-│   ├── client.py               # 飞书 API 客户端
-│   ├── approval_templates.py   # 审批表单字段定义
-│   └── notifier.py             # 飞书通知
+│   ├── client.py               # IM API client
+│   ├── approval_templates.py   # Approval form field definitions
+│   └── notifier.py             # IM notifications
 ├── models/
-│   ├── pipeline_record.py      # 流水线记录
-│   ├── resource_record.py      # 资源台账
-│   └── operation_log.py        # 操作审计日志
+│   ├── pipeline_record.py      # Pipeline records
+│   ├── resource_record.py      # Resource inventory
+│   └── operation_log.py        # Audit log
 └── docs/
-    ├── phase2-plan.md          # Phase 2 规划
-    └── workflow-diagrams.md    # Mermaid 流程图（10张）
+    ├── phase2-plan.md          # Phase 2 roadmap
+    └── workflow-diagrams.md    # Mermaid diagrams (10 charts)
 ```
 
-## 快速开始
+## Getting Started
 
-### 1. 安装
+### 1. Install
 
 ```bash
 cd agentflow
 pip install -e .
 ```
 
-### 2. 配置
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
-编辑 `.env`，填入飞书应用凭证和云平台 AccessKey。完整配置项见 [.env.example](.env.example)。
+Edit `.env` with your IM app credentials and cloud platform AccessKeys. See [.env.example](.env.example) for all config options.
 
-### 3. 启动
+### 3. Run
 
 ```bash
-# 开发模式
+# Development
 python main.py
 
-# 生产模式
+# Production
 uvicorn main:app --host 0.0.0.0 --port 8000
 
 # Docker
@@ -106,33 +106,33 @@ docker build -t agentflow .
 docker run -p 8000:8000 --env-file .env agentflow
 ```
 
-### 4. 验证
+### 4. Verify
 
 ```bash
 curl http://localhost:8000/health
 # {"status":"ok"}
 ```
 
-## 流程图
+## Workflow Diagrams
 
-详见 [docs/workflow-diagrams.md](docs/workflow-diagrams.md)，包含 10 张 Mermaid 流程图：
+See [docs/workflow-diagrams.md](docs/workflow-diagrams.md) for 10 Mermaid diagrams:
 
-1. 现状 vs 自动化对比
-2. 项目全生命周期
-3. 云资源开通流程
-4. 域名替换流程
-5. 定时任务流程
-6. 系统整体架构
-7. AI 对话式云操作（Phase 2）
-8. LLM Vibe Coding（Phase 2）
-9. Phase 2 完整架构
-10. 里程碑总览
+1. Current State vs Automated Comparison
+2. Full Project Lifecycle
+3. Cloud Resource Provisioning Flow
+4. Domain Replacement Flow
+5. Scheduled Tasks Flow
+6. System Architecture Overview
+7. AI Conversational Cloud Ops (Phase 2)
+8. LLM Vibe Coding (Phase 2)
+9. Phase 2 Full Architecture
+10. Milestone Overview
 
-## 价值
+## Impact
 
-| 维度 | 人工 | Phase 1 自动化 | Phase 2 AI 驱动 |
-|------|------|---------------|----------------|
-| **运维人力** | 2 人 | 0 人 | 0 人 |
-| **研发人力** | 外包 RD 团队 | 外包 RD 团队 | LLM 替代 |
-| **操作方式** | 口头找运维 | 飞书审批表单 | 飞书对话一句话 |
-| **响应速度** | 几小时到几天 | 分钟级 | 秒级 |
+| Dimension | Manual | Phase 1 Automated | Phase 2 AI-Driven |
+|-----------|--------|-------------------|-------------------|
+| **Ops Headcount** | 2 engineers | 0 | 0 |
+| **Dev Headcount** | Outsourced team | Outsourced team | LLM replaces |
+| **Interface** | Verbal requests to ops | IM approval form | One-line chat message |
+| **Response Time** | Hours to days | Minutes | Seconds |
